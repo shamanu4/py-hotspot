@@ -1,0 +1,9 @@
+*.pyc
+*.*~
+.pydevproject
+.project
+.settings
+.settings/*
+settings_local.py
+nbproject
+
