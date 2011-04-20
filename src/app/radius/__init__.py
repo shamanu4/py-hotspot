@@ -56,3 +56,4 @@ class AuthServer(server.Server):
         # @todo: handle session
         reply=self.CreateReplyPacket(pkt)
         self.SendReplyPacket(pkt.fd, reply)
+        
