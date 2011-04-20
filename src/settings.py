@@ -81,11 +81,9 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'middleware.CurrentUserMiddleware',
 )
 
 AUTHENTICATION_BACKENDS = (
-    'app.accounts.backends.CustomUserBackend',
     'django.contrib.auth.backends.ModelBackend',
 )
 
@@ -109,6 +107,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.admin',
     'django_extensions',          # optional, neede for development only
+    'radius',
+    'hotspot',
 )
 
 try:

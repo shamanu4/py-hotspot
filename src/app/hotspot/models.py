@@ -7,7 +7,6 @@ Created on 20.04.2011
 
 from django.db import models
 from datetime import datetime, timedelta
-from durationfield.db.models.fields.duration import DurationField
 
 
 
@@ -69,7 +68,22 @@ class Client(models.Model):
         
     def __unicode__(self):
         return self.login
-
+    
+    @property
+    def timelimit(self):
+        return self.group.time_limit or 0
+    
+    @property
+    def time_used(self):
+        return 0
+                
+    @property
+    def remain(self):
+        if not self.timelimit:
+            return 0
+        else:
+            return self.timelimit*3600-self.time_used        
+        
 
 
 class VirtualClient(models.Model):
@@ -92,7 +106,7 @@ class Session(models.Model):
     client = models.ForeignKey(Client)
     framed_ip = models.IPAddressField()
     mac = models.CharField(max_length=18)
-    start = models.DateTimeField(default=datetime.now)
+    started = models.DateTimeField(default=datetime.now)
     updated = models.DateTimeField(default=datetime.now)
     bytes_in = models.PositiveIntegerField(default=0)
     bytes_out = models.PositiveIntegerField(default=0)
@@ -103,6 +117,14 @@ class Session(models.Model):
         
     def __unicode__(self):
         return "%s %s" % (self.ap.name, self.client.login)
+    
+    @property
+    def duration(self):
+        return (self.updated - self.started).seconds
+    
+    @property
+    def hours(self):
+        return self.duration/3600
     
     
     
