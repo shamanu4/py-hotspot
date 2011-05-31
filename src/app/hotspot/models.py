@@ -57,10 +57,12 @@ class Group(models.Model):
 class Client(models.Model):
     
     login = models.CharField(max_length=20, unique=True)
+    password = models.CharField(max_length=20)
     group = models.ForeignKey(Group)
     registered = models.DateTimeField(blank=True, null=True)
     expire = models.DateTimeField(blank=True, null=True)
     active = models.BooleanField(default=False)
+    virtual = models.BooleanField(default=False)
     comment = models.TextField(blank=True, null=True)
     
     class Meta:
@@ -83,6 +85,16 @@ class Client(models.Model):
             return 0
         else:
             return self.timelimit*3600-self.time_used        
+        
+    @classmethod
+    def get_or_create(cls,login,group):
+        from datetime import date
+        try:
+            client = cls.objects.get(login=login)
+        except cls.DoesNotExist:
+            client = cls(login=login,group=group,active=True,registered=date.today(),virtual=True)
+            client.save()
+        return client()
         
 
 
