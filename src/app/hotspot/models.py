@@ -28,6 +28,7 @@ class AccessPoint(models.Model):
     ip = models.IPAddressField(unique=True)
     name = models.CharField(max_length=40, unique=True)
     zone = models.ForeignKey(Zone)
+    radsecret = models.CharField(max_length=20)
     comment = models.TextField(blank=True, null=True)
     
     class Meta:
@@ -37,9 +38,70 @@ class AccessPoint(models.Model):
         return self.name
     
 
+    
+class Client(models.Model):
+    
+    login = models.CharField(max_length=40, unique=True)
+    password = models.CharField(max_length=20)
+    groups = models.ManyToManyField('Group',blank=True, null=True)
+    registered = models.DateTimeField(blank=True, null=True)
+    expire = models.DateTimeField(blank=True, null=True)
+    active = models.BooleanField(default=False)
+    virtual = models.BooleanField(default=False)
+    vclient = models.ForeignKey('VirtualClient',blank=True, null=True)
+    comment = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['login']
+        
+    def __unicode__(self):
+        return self.login
+    
+    def group(self,zone):
+        if not self.virtual:
+            gr=self.groups.filter(zone=zone)
+        else:
+            gr=self.vclient.groups.filter(zone=zone)
+        if gr.count()>0:
+            return gr[0]
+        else:
+            return False
+        
+    def time_limit(self,zone):
+        if self.group(zone):
+            return self.group(zone).time_limit or 0
+        else:
+            return 0
+    
+    def speed_limit(self,zone):
+        if self.group(zone):
+            return self.group(zone).speed_limit or 0
+        else:
+            return 0
+    
+    def time_used(self,zone):
+        return 0
+                
+    def remain(self,zone):
+        if not self.time_limit(zone):
+            return 0
+        else:
+            return self.time_limit(zone)*3600-self.time_used(zone)        
+        
+    @classmethod
+    def get_or_create(cls,login,vclient):
+        try:
+            client = cls.objects.get(login=login)
+        except cls.DoesNotExist:
+            client = cls(login=login,active=True,registered=datetime.now(),virtual=True,vclient=vclient)
+            client.save()
+        return client
+        
+
 
 class Group(models.Model):
 
+    zone = models.ForeignKey(Zone)
     name = models.CharField(max_length=40, unique=True)
     time_limit = models.PositiveIntegerField(default=0)     # in hours
     traffic_limit = models.PositiveIntegerField(default=0)  # in megabytes
@@ -53,55 +115,11 @@ class Group(models.Model):
         return self.name
 
 
-    
-class Client(models.Model):
-    
-    login = models.CharField(max_length=20, unique=True)
-    password = models.CharField(max_length=20)
-    group = models.ForeignKey(Group)
-    registered = models.DateTimeField(blank=True, null=True)
-    expire = models.DateTimeField(blank=True, null=True)
-    active = models.BooleanField(default=False)
-    virtual = models.BooleanField(default=False)
-    comment = models.TextField(blank=True, null=True)
-    
-    class Meta:
-        ordering = ['login']
-        
-    def __unicode__(self):
-        return self.login
-    
-    @property
-    def timelimit(self):
-        return self.group.time_limit or 0
-    
-    @property
-    def time_used(self):
-        return 0
-                
-    @property
-    def remain(self):
-        if not self.timelimit:
-            return 0
-        else:
-            return self.timelimit*3600-self.time_used        
-        
-    @classmethod
-    def get_or_create(cls,login,group):
-        from datetime import date
-        try:
-            client = cls.objects.get(login=login)
-        except cls.DoesNotExist:
-            client = cls(login=login,group=group,active=True,registered=date.today(),virtual=True)
-            client.save()
-        return client()
-        
-
 
 class VirtualClient(models.Model):
     
     login = models.CharField(max_length=20, unique=True)
-    group = models.ForeignKey(Group)
+    groups = models.ManyToManyField('Group',blank=True, null=True)
     
     class Meta:
         ordering = ['login']
@@ -119,7 +137,7 @@ class Session(models.Model):
     framed_ip = models.IPAddressField()
     mac = models.CharField(max_length=18)
     started = models.DateTimeField(default=datetime.now)
-    updated = models.DateTimeField(default=datetime.now)
+    duration = models.IntegerField(default=0) 
     bytes_in = models.PositiveIntegerField(default=0)
     bytes_out = models.PositiveIntegerField(default=0)
     closed = models.BooleanField(default=False)
@@ -130,9 +148,9 @@ class Session(models.Model):
     def __unicode__(self):
         return "%s %s" % (self.ap.name, self.client.login)
     
-    @property
-    def duration(self):
-        return (self.updated - self.started).seconds
+    #@property
+    #def duration(self):
+    #    return (self.updated - self.started).seconds
     
     @property
     def hours(self):

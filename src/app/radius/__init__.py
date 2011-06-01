@@ -21,22 +21,33 @@ class AuthServer(server.Server):
         return packet_password          
 
     
-    def _AuthCheck(self,username,password,mac):
-        from hotspot.models import Client, VirtualClient
+    def _SessionStart(self, ap, client, mac, sid, framed_ip):
+        from hotspot.models import Session
+        session = Session(ap=ap, client=client, mac=mac, sid=sid, framed_ip=framed_ip)
+        session.save()
+    
+    
+    def _AuthCheck(self, point_ip, username, password, mac, sid, framed_ip):
+        from hotspot.models import Client, VirtualClient, AccessPoint
+        try:
+            ap = AccessPoint.objects.get(ip=point_ip)            
+        except AccessPoint.DoesNotExist:
+            return (False,0,0)
         try:
             client = Client.objects.get(login=username, password=password, virtual=False, active=True)
         except Client.DoesNotExist:
             try:
-                client = VirtualClient.objects.get(login=username)
+                vclient = VirtualClient.objects.get(login=username)
             except VirtualClient.DoesNotExist:
                 client = None
             else:
-                client = Client.get_or_create(login="ARP_%s" % mac, group=client.group)
-        if client and client.active:
-            return (True,client.remain,client.group.speed_limit)
+                client = Client.get_or_create(login="ARP_%s" % mac, vclient=vclient)
+        if client and client.active and client.group(ap.zone):
+            self._SessionStart(ap, client, mac, sid, framed_ip)
+            return (True,client.remain(ap.zone),client.speed_limit(ap.zone))
         else:
             return (False,0,0)
-                    
+                        
     
     def _HandleAuthPacket(self, pkt):
         import random
@@ -51,13 +62,17 @@ class AuthServer(server.Server):
         username = pkt.get('User-Name')[0]
         password = self.get_pap_pass(pkt)
         mac = pkt.get('Calling-Station-Id')[0]
+        point_ip = pkt.get('NAS-IP-Address')[0]
+        sid = pkt.get('Acct-Session-Id')[0]
+        framed_ip = pkt.get('Framed-IP-Address')[0]
         print "username: %s" % username
         print "password: %s" % password
-        print "mac: %s" % mac                
+        print "mac: %s" % mac
+        print "sid: %s" % sid
+        print "framed_ip: %s" % framed_ip                 
         print
-        reply=self.CreateReplyPacket(pkt)
-        
-        auth = self._AuthCheck(username, password, mac)
+        reply=self.CreateReplyPacket(pkt)        
+        auth = self._AuthCheck(point_ip, username, password, mac, sid, framed_ip)
         if auth[0]:
             print "Auth OK"
             reply.code=packet.AccessAccept
@@ -84,7 +99,37 @@ class AuthServer(server.Server):
         for attr in pkt.keys():
             print "%s: %s" % (attr, pkt[attr])
         print
-        # @todo: handle session
+        
+        point_ip = pkt.get('NAS-IP-Address')[0]
+        sid = pkt.get('Acct-Session-Id')[0]        
+        bytes_in = (pkt.get('Acct-Input-Octets') or [0])[0]
+        bytes_out = (pkt.get('Acct-Input-Octets') or [0])[0]
+        duration = (pkt.get('Acct-Session-Time') or [0])[0]
+        status = pkt.get('Acct-Status-Type')[0]
+        
+        print "IN: %s" % bytes_in
+        print "OUT: %s" % bytes_out
+        print "DURATION: %s" % duration
+        print 
+        
+        from hotspot.models import Session,AccessPoint
+        try:
+            ap = AccessPoint.objects.get(ip=point_ip)            
+        except AccessPoint.DoesNotExist:
+            pass
+        else:
+            try: 
+                session = Session.objects.get(ap=ap,sid=sid,closed=False)
+            except Session.DoesNotExist:
+                pass
+            else:
+                session.bytes_in=bytes_in
+                session.bytes_out=bytes_out
+                session.duration=duration
+                if status=='Stop':
+                    session.closed=True
+                session.save()
+        
         reply=self.CreateReplyPacket(pkt)
         self.SendReplyPacket(pkt.fd, reply)
         
