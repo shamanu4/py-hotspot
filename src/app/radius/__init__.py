@@ -8,6 +8,8 @@ from pyrad import dictionary
 from pyrad import server
 srv = AuthServer(dict = dictionary.Dictionary( "app/radius/dicts/dictionary" ))
 srv.hosts['192.168.39.211'] =  server.RemoteHost('192.168.39.211','hotsp1','hotsp1.it-tim.net')
+srv.hosts['192.168.39.212'] =  server.RemoteHost('192.168.39.212','hotsp2','hotsp2.it-tim.net')
+srv.hosts['192.168.39.213'] =  server.RemoteHost('192.168.39.212','hotsp3','hotsp3.it-tim.net')
 srv.BindToAddress('192.168.33.152')
 srv.Run()
 """
@@ -42,7 +44,7 @@ class AuthServer(server.Server):
                 client = None
             else:
                 client = Client.get_or_create(login="ARP_%s" % mac, vclient=vclient)
-        if client and client.active and client.group(ap.zone):
+        if client and client.active and client.group(ap.zone) and client.remain(ap.zone)>0:
             self._SessionStart(ap, client, mac, sid, framed_ip)
             return (True,client.remain(ap.zone),client.speed_limit(ap.zone))
         else:
@@ -80,7 +82,7 @@ class AuthServer(server.Server):
             if auth[1]:
                 reply.AddAttribute('Session-Timeout',auth[1])
             if auth[2]:
-                reply.AddAttribute('Mikrotik-Rate-Limit','%sk/%sk %sk/%sk %sk/%sk 10/10' % (auth[2],auth[2],auth[2]*4,auth[2]*4,auth[2]*2,auth[2]*2))                     
+                reply.AddAttribute('Mikrotik-Rate-Limit','%sk/%sk' % (auth[2],auth[2]))                   
         else:
             print "Auth FAIL"        
             reply.code=packet.AccessReject        
@@ -101,7 +103,7 @@ class AuthServer(server.Server):
         print
         
         point_ip = pkt.get('NAS-IP-Address')[0]
-        sid = pkt.get('Acct-Session-Id')[0]        
+        sid = (pkt.get('Acct-Session-Id') or [''])[0]        
         bytes_in = (pkt.get('Acct-Input-Octets') or [0])[0]
         bytes_out = (pkt.get('Acct-Input-Octets') or [0])[0]
         duration = (pkt.get('Acct-Session-Time') or [0])[0]

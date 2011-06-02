@@ -6,7 +6,7 @@ Created on 20.04.2011
 '''
 
 from django.contrib import admin
-from hotspot.models import *
+from hotspot.models import Zone, AccessPoint, Group, Client, VirtualClient, Session
 
 """
 Zone

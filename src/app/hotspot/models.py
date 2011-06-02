@@ -80,7 +80,10 @@ class Client(models.Model):
             return 0
     
     def time_used(self,zone):
-        return 0
+        from django.db.models import Sum
+        from lib.functions import date_formatter
+        used = self.session_set.filter(started__gte=date_formatter()['month']).aggregate(Sum('duration'))
+        return used['duration__sum']
                 
     def remain(self,zone):
         if not self.time_limit(zone):
@@ -152,10 +155,8 @@ class Session(models.Model):
     #def duration(self):
     #    return (self.updated - self.started).seconds
     
-    @property
     def hours(self):
         return self.duration/3600
-    
     
     
     
