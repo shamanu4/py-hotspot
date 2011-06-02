@@ -81,9 +81,9 @@ class Client(models.Model):
     
     def time_used(self,zone):
         from django.db.models import Sum
-        from lib.functions import date_formatter
+        from functions import date_formatter        
         used = self.session_set.filter(started__gte=date_formatter()['month']).aggregate(Sum('duration'))
-        return used['duration__sum']
+        return used['duration__sum'] or 0
                 
     def remain(self,zone):
         if not self.time_limit(zone):
