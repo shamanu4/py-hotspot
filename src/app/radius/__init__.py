@@ -31,6 +31,8 @@ class AuthServer(server.Server):
     
     def _AuthCheck(self, point_ip, username, password, mac, sid, framed_ip):
         from hotspot.models import Client, VirtualClient, AccessPoint
+        import re
+        regex = re.compile("[a-zA-Z]+")         
         try:
             ap = AccessPoint.objects.get(ip=point_ip)            
         except AccessPoint.DoesNotExist:
@@ -38,6 +40,9 @@ class AuthServer(server.Server):
         try:
             client = Client.objects.get(login=username, password=password, virtual=False, active=True)
         except Client.DoesNotExist:
+            m = regex.match(username)
+            if m:
+                username=m.group(0)
             try:
                 vclient = VirtualClient.objects.get(login=username)
             except VirtualClient.DoesNotExist:
@@ -79,6 +84,7 @@ class AuthServer(server.Server):
             print "Auth OK"
             reply.code=packet.AccessAccept
             reply.AddAttribute('Acct-Interim-Interval',60)
+            reply.AddAttribute('User-Name','new-test')
             if auth[1]:
                 reply.AddAttribute('Session-Timeout',auth[1])
             if auth[2]:
@@ -120,18 +126,18 @@ class AuthServer(server.Server):
         except AccessPoint.DoesNotExist:
             pass
         else:
-            try: 
-                session = Session.objects.get(ap=ap,sid=sid,closed=False)
-            except Session.DoesNotExist:
+            sessions = Session.objects.filter(ap=ap,sid=sid,closed=False).order_by('-pk')
+            if sessions.count()==0:
                 pass
             else:
+                session = sessions[0]
                 session.bytes_in=bytes_in
                 session.bytes_out=bytes_out
                 session.duration=duration
                 if status=='Stop':
-                    session.closed=True
-                session.save()
+                    session.closed=True                                
+                session.save()                
         
-        reply=self.CreateReplyPacket(pkt)
+        reply=self.CreateReplyPacket(pkt)                    
         self.SendReplyPacket(pkt.fd, reply)
         
