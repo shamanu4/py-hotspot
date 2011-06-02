@@ -6,7 +6,7 @@ Created on 20.04.2011
 '''
 
 from django.db import models
-from datetime import datetime, timedelta
+from datetime import datetime
 
 
 
