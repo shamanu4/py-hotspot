@@ -111,7 +111,7 @@ class AuthServer(server.Server):
         point_ip = pkt.get('NAS-IP-Address')[0]
         sid = (pkt.get('Acct-Session-Id') or [''])[0]        
         bytes_in = (pkt.get('Acct-Input-Octets') or [0])[0]
-        bytes_out = (pkt.get('Acct-Input-Octets') or [0])[0]
+        bytes_out = (pkt.get('Acct-Output-Octets') or [0])[0]
         duration = (pkt.get('Acct-Session-Time') or [0])[0]
         status = pkt.get('Acct-Status-Type')[0]
         
