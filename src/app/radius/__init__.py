@@ -8,10 +8,8 @@ from pyrad import dictionary
 from pyrad import server
 srv = AuthServer(dict = dictionary.Dictionary( "app/radius/dicts/dictionary" ))
 srv.hosts['192.168.39.211'] =  server.RemoteHost('192.168.39.211','hotsp1','hotsp1.it-tim.net')
-srv.hosts['192.168.39.212'] =  server.RemoteHost('192.168.39.212','hotsp2','hotsp2.it-tim.net')
-srv.hosts['192.168.39.213'] =  server.RemoteHost('192.168.39.213','hotsp3','hotsp3.it-tim.net')
-srv.hosts['192.168.33.145'] =  server.RemoteHost('192.168.39.145','hotsp4','hotsp4.it-tim.net')
-srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.39.33','thedude','hotsp5.it-tim.net')
+srv.hosts['192.168.70.211'] =  server.RemoteHost('192.168.39.212','hotsp2','hotsp2.it-tim.net')
+srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.39.33','thedude','thedude.it-tim.net')
 srv.BindToAddress('192.168.33.70')
 srv.Run()
 """
