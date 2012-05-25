@@ -7,7 +7,8 @@ Created on 20.04.2011
 
 from django.db import models
 from datetime import datetime
-
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes import generic
 
 
 class Zone(models.Model):
@@ -82,7 +83,7 @@ class Client(models.Model):
     def time_used(self,zone):
         from django.db.models import Sum
         from functions import date_formatter        
-        used = self.session_set.filter(started__gte=date_formatter()['month']).aggregate(Sum('duration'))
+        used = self.session_set.filter(ap__zone=zone).filter(started__gte=date_formatter()['month']).aggregate(Sum('duration'))
         return used['duration__sum'] or 0
                 
     def remain(self,zone):
@@ -99,7 +100,25 @@ class Client(models.Model):
             client = cls(login=login,active=True,registered=datetime.now(),virtual=True,vclient=vclient)
             client.save()
         return client
-        
+
+    def get_pass(self):
+        try:
+            self.external
+        except Exception:
+            return self.password
+        else:
+            self.external.password
+
+    def check_active(self):
+        try:
+            self.external
+        except Exception:
+            return self.active
+        else:
+            return self.external.enabled and self.external.balance>0
+
+    def check_pass(self,passwrod):
+        return self.get_pass() == passwrod
 
 
 class Group(models.Model):
@@ -135,7 +154,7 @@ class VirtualClient(models.Model):
 class Session(models.Model):
     
     ap = models.ForeignKey(AccessPoint)
-    sid =  models.CharField(max_length=20)
+    sid = models.CharField(max_length=20)
     client = models.ForeignKey(Client)
     framed_ip = models.IPAddressField()
     mac = models.CharField(max_length=18)
@@ -157,6 +176,86 @@ class Session(models.Model):
     
     def hours(self):
         return self.duration/3600
-    
-    
-    
+
+
+ALLOWED_EXTERNALL_BILL_PROPERTIES = (
+        'get_login',
+        'get_password',
+        'get_balance',
+        'get_enabled'
+)
+
+class BillExternalType(models.Model):
+
+    type= models.SlugField(max_length=20)
+    content_type = models.ForeignKey(ContentType)
+
+    def __unicode__(self):
+        if self.valid:
+            return self.type
+        return u'[invalid] %s' % self.type
+
+    #noinspection PyStatementEffect
+    @property
+    def valid(self):
+        try:
+            self.content_type
+        except Exception:
+            return False
+        try:
+            self.content_type.model_class().get_login
+            self.content_type.model_class().get_password
+            self.content_type.model_class().get_balance
+            self.content_type.model_class().get_enabled
+        except Exception:
+            return False
+        return True
+
+
+    def get_property(self,property):
+        if not self.valid:
+            return '[invalid external billing].%s' % property
+        if not property in ALLOWED_EXTERNALL_BILL_PROPERTIES:
+            return "%s.[invalid property '%s']" % (self.__unicode__(),property)
+        return getattr(self.content_type.model_class(),property)
+
+    def get_login(self):
+        return self.get_property('get_login')
+
+    def get_password(self):
+        return self.get_property('get_password')
+
+    def get_balance(self):
+        return self.get_property('get_balance')
+
+    def get_enabled(self):
+        return self.get_property('get_enabled')
+
+
+class BillExternal(models.Model):
+
+    client = models.OneToOneField(Client,related_name='external')
+    billing = models.ForeignKey(BillExternalType)
+
+    @property
+    def login(self):
+        func = self.billing.get_login()
+        return func(self.client)
+
+    @property
+    def password(self):
+        func = self.billing.get_password()
+        return func(self.client)
+
+    @property
+    def balance(self):
+        func = self.billing.get_balance()
+        return func(self.client)
+
+    @property
+    def enabled(self):
+        func = self.billing.get_enabled()
+        return func(self.client)
+
+    def __unicode__(self):
+        return self.client.login

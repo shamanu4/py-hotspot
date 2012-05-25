@@ -28,6 +28,8 @@ DATABASES = {
     }
 }
 
+DATABASE_ROUTERS = ['dbrouter.MainDBRouter',]
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -106,9 +108,10 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-    'django_extensions',          # optional, neede for development only
+#    'django_extensions',          # optional, neede for development only
     'radius',
     'hotspot',
+    'abills',
 )
 
 try:

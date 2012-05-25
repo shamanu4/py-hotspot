@@ -9,8 +9,10 @@ from pyrad import server
 srv = AuthServer(dict = dictionary.Dictionary( "app/radius/dicts/dictionary" ))
 srv.hosts['192.168.39.211'] =  server.RemoteHost('192.168.39.211','hotsp1','hotsp1.it-tim.net')
 srv.hosts['192.168.39.212'] =  server.RemoteHost('192.168.39.212','hotsp2','hotsp2.it-tim.net')
-srv.hosts['192.168.39.213'] =  server.RemoteHost('192.168.39.212','hotsp3','hotsp3.it-tim.net')
-srv.BindToAddress('192.168.33.152')
+srv.hosts['192.168.39.213'] =  server.RemoteHost('192.168.39.213','hotsp3','hotsp3.it-tim.net')
+srv.hosts['192.168.33.145'] =  server.RemoteHost('192.168.39.145','hotsp4','hotsp4.it-tim.net')
+srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.39.33','thedude','hotsp5.it-tim.net')
+srv.BindToAddress('192.168.33.70')
 srv.Run()
 """
 class AuthServer(server.Server):
@@ -38,7 +40,7 @@ class AuthServer(server.Server):
         except AccessPoint.DoesNotExist:
             return (False,0,0)
         try:
-            client = Client.objects.get(login=username, password=password, virtual=False, active=True)
+            client = Client.objects.get(login=username, virtual=False, active=True)
         except Client.DoesNotExist:
             m = regex.match(username)
             if m:
@@ -49,7 +51,7 @@ class AuthServer(server.Server):
                 client = None
             else:
                 client = Client.get_or_create(login="ARP_%s" % mac, vclient=vclient)
-        if client and client.active and client.group(ap.zone) and client.remain(ap.zone)>0:
+        if client and client.check_pass(password) and client.check_active() and client.group(ap.zone) and client.remain(ap.zone)>0:
             self._SessionStart(ap, client, mac, sid, framed_ip)
             return (True,client.remain(ap.zone),client.speed_limit(ap.zone))
         else:

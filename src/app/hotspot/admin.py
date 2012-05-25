@@ -6,7 +6,7 @@ Created on 20.04.2011
 '''
 
 from django.contrib import admin
-from hotspot.models import Zone, AccessPoint, Group, Client, VirtualClient, Session
+from hotspot.models import Zone, AccessPoint, Group, Client, VirtualClient, Session, BillExternalType, BillExternal
 
 """
 Zone
@@ -49,3 +49,17 @@ Session
 class SessionAdmin(admin.ModelAdmin):
     pass
 admin.site.register(Session, SessionAdmin)
+
+"""
+BillExternalType
+"""
+class BillExternalTypeAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(BillExternalType, BillExternalTypeAdmin)
+
+"""
+BillExternal
+"""
+class BillExternalAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__','enabled','login','password','balance')
+admin.site.register(BillExternal, BillExternalAdmin)
