@@ -1,5 +1,7 @@
 *.pyc
+*.iml
 *.*~
+.idea
 .pydevproject
 .project
 .settings
