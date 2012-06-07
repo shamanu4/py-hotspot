@@ -142,6 +142,6 @@ class AuthServer(server.Server):
         self.SendReplyPacket(pkt.fd, reply)
 
     def _GrabPacket(self, pktgen, fd):
-        server.Server._GrabPacket(self, pktgen, fd)
+        pkt = server.Server._GrabPacket(self, pktgen, fd)
         print "\n\nGRAB PKT:\n===\n%s\n===\n\n" % pkt
         return pkt
