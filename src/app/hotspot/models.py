@@ -118,6 +118,8 @@ class Client(models.Model):
             return self.external.enabled and self.external.balance>0
 
     def check_pass(self,passwrod):
+        if self.virtual:
+            return True
         return self.get_pass() == passwrod
 
 

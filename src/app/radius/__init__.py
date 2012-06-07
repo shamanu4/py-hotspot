@@ -8,7 +8,7 @@ from pyrad import dictionary
 from pyrad import server
 srv = AuthServer(dict = dictionary.Dictionary( "app/radius/dicts/dictionary" ))
 srv.hosts['192.168.39.211'] =  server.RemoteHost('192.168.39.211','hotsp1','hotsp1.it-tim.net')
-srv.hosts['192.168.70.211'] =  server.RemoteHost('192.168.39.212','hotsp2','hotsp2.it-tim.net')
+srv.hosts['192.168.70.211'] =  server.RemoteHost('192.168.70.211','hotsp2','hotsp2.it-tim.net')
 srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.39.33','thedude','thedude.it-tim.net')
 srv.BindToAddress('192.168.33.70')
 srv.Run()
@@ -140,4 +140,8 @@ class AuthServer(server.Server):
         
         reply=self.CreateReplyPacket(pkt)                    
         self.SendReplyPacket(pkt.fd, reply)
-        
+
+    def _GrabPacket(self, pktgen, fd):
+        pkt = super(self.__class__, self)._GrabPacket(*args, **kwargs)
+        print "\nGRAB PKT:\n===\n%s\n===\s" % pkt
+        return pkt
