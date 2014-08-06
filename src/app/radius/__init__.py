@@ -65,7 +65,10 @@ class AuthServer(server.Server):
         print "Received an authentication request"
         print "Attributes: "
         for attr in pkt.keys():
-            print "%s: %s" % (attr, pkt[attr])
+            try:
+                print "%s: %s" % (attr, pkt[attr])
+            except Exception, e:
+                print "%s is not printable" % unidecode(attr)
         print
         
         username = pkt['User-Name'][0]
@@ -97,8 +100,10 @@ class AuthServer(server.Server):
         print "Sending auth reply"
         print "Attributes: "
         for attr in reply.keys():
-            print "%s: %s" % (attr, reply[attr])
-        print
+            try:
+                print "%s: %s" % (attr, reply[attr])
+            except Exception, e:
+                print "%s is not printable" % unidecode(attr)
         self.SendReplyPacket(pkt.fd, reply)
     
     def _HandleAcctPacket(self, pkt):
