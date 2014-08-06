@@ -17,6 +17,6 @@ class Command(BaseCommand):
         srv.hosts['10.11.8.30'] =  server.RemoteHost('10.11.8.30','hotsp3','hotsp3.it-tim.net')
         srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.33.33','thedude','thedude.it-tim.net')
         srv.hosts['192.168.33.152'] =  server.RemoteHost('192.168.33.152','dev','dev.it-tim.net')
-        srv.BindToAddress('192.168.33.70')
         sleep(5)
+        srv.BindToAddress('192.168.33.70')
         srv.Run()
