@@ -12,16 +12,20 @@ srv.hosts['192.168.39.211'] =  server.RemoteHost('192.168.39.211','hotsp1','hots
 srv.hosts['192.168.70.211'] =  server.RemoteHost('192.168.70.211','hotsp2','hotsp2.it-tim.net')
 srv.hosts['10.11.8.30'] =  server.RemoteHost('10.11.8.30','hotsp3','hotsp3.it-tim.net')
 srv.hosts['192.168.33.33'] =  server.RemoteHost('192.168.33.33','thedude','thedude.it-tim.net')
+srv.hosts['192.168.33.152'] =  server.RemoteHost('192.168.33.152','dev','dev.it-tim.net')
 srv.BindToAddress('192.168.33.70')
 srv.Run()
 """
 class AuthServer(server.Server):
     
-    def get_pap_pass(self, pkt): 
-        packet_password = packet.AuthPacket(
+    def get_pap_pass(self, pkt):
+        try:
+            packet_password = packet.AuthPacket(
                             secret = pkt.secret,
                             authenticator = pkt.authenticator
                             ).PwDecrypt( pkt['User-Password'][0] )
+        except Exception, e:
+            packet_password = "NON_DECODABLE"
         return packet_password          
 
     
