@@ -123,10 +123,10 @@ class AuthServer(server.Server):
         print
         
         point_ip = pkt['NAS-IP-Address'][0]
-        sid = (pkt['Acct-Session-Id'] or [''])[0]
-        bytes_in = (pkt['Acct-Input-Octets'] or [0])[0]
-        bytes_out = (pkt['Acct-Output-Octets'] or [0])[0]
-        duration = (pkt['Acct-Session-Time'] or [0])[0]
+        sid = (pkt.get('Acct-Session-Id') or [''])[0]
+        bytes_in = (pkt.get('Acct-Input-Octets') or [0])[0]
+        bytes_out = (pkt.get('Acct-Output-Octets') or [0])[0]
+        duration = (pkt.get('Acct-Session-Time') or [0])[0]
         status = pkt['Acct-Status-Type'][0]
         
         print "IN: %s" % bytes_in
