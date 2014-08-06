@@ -6,6 +6,7 @@
 .project
 .settings
 .settings/*
+env/*
 settings_local.py
 nbproject
 

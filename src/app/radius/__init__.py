@@ -19,7 +19,7 @@ class AuthServer(server.Server):
         packet_password = packet.AuthPacket(
                             secret = pkt.secret,
                             authenticator = pkt.authenticator
-                            ).PwDecrypt( pkt.get('User-Password')[0] )    
+                            ).PwDecrypt( pkt['User-Password'][0] )
         return packet_password          
 
     
@@ -66,12 +66,12 @@ class AuthServer(server.Server):
             print "%s: %s" % (attr, pkt[attr])
         print
         
-        username = pkt.get('User-Name')[0]
+        username = pkt['User-Name'][0]
         password = self.get_pap_pass(pkt)
-        mac = pkt.get('Calling-Station-Id')[0]
-        point_ip = pkt.get('NAS-IP-Address')[0]
-        sid = pkt.get('Acct-Session-Id')[0]
-        framed_ip = pkt.get('Framed-IP-Address')[0]
+        mac = pkt['Calling-Station-Id'][0]
+        point_ip = pkt['NAS-IP-Address'][0]
+        sid = pkt['Acct-Session-Id'][0]
+        framed_ip = pkt['Framed-IP-Address'][0]
         print "username: %s" % username
         print "password: %s" % password
         print "mac: %s" % mac
@@ -108,12 +108,12 @@ class AuthServer(server.Server):
             print "%s: %s" % (attr, pkt[attr])
         print
         
-        point_ip = pkt.get('NAS-IP-Address')[0]
-        sid = (pkt.get('Acct-Session-Id') or [''])[0]        
-        bytes_in = (pkt.get('Acct-Input-Octets') or [0])[0]
-        bytes_out = (pkt.get('Acct-Output-Octets') or [0])[0]
-        duration = (pkt.get('Acct-Session-Time') or [0])[0]
-        status = pkt.get('Acct-Status-Type')[0]
+        point_ip = pkt['NAS-IP-Address'][0]
+        sid = (pkt['Acct-Session-Id'] or [''])[0]
+        bytes_in = (pkt['Acct-Input-Octets'] or [0])[0]
+        bytes_out = (pkt['Acct-Output-Octets'] or [0])[0]
+        duration = (pkt['Acct-Session-Time'] or [0])[0]
+        status = pkt['Acct-Status-Type'][0]
         
         print "IN: %s" % bytes_in
         print "OUT: %s" % bytes_out

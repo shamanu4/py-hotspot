@@ -107,7 +107,7 @@ class Client(models.Model):
         except Exception:
             return self.password
         else:
-            self.external.password
+            return self.external.password
 
     def check_active(self):
         try:
