@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from pyrad import dictionary, packet, server
+from unidecode import unidecode
 
 """
 from radius import  AuthServer
@@ -106,7 +107,10 @@ class AuthServer(server.Server):
         print "Received an accounting request"
         print "Attributes: "
         for attr in pkt.keys():
-            print "%s: %s" % (attr, pkt[attr])
+            try:
+                print "%s: %s" % (attr, pkt[attr])
+            except Exception, e:
+                print "%s is not printable" % unidecode(attr)
         print
         
         point_ip = pkt['NAS-IP-Address'][0]
