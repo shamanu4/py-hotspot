@@ -68,7 +68,7 @@ class AuthServer(server.Server):
             try:
                 print "%s: %s" % (attr, pkt[attr])
             except Exception, e:
-                print "%s is not printable" % unidecode(attr)
+                print "%s is not printable" % attr
         print
         
         username = pkt['User-Name'][0]
@@ -103,7 +103,7 @@ class AuthServer(server.Server):
             try:
                 print "%s: %s" % (attr, reply[attr])
             except Exception, e:
-                print "%s is not printable" % unidecode(attr)
+                print "%s is not printable" % attr
         self.SendReplyPacket(pkt.fd, reply)
     
     def _HandleAcctPacket(self, pkt):
@@ -115,7 +115,7 @@ class AuthServer(server.Server):
             try:
                 print "%s: %s" % (attr, pkt[attr])
             except Exception, e:
-                print "%s is not printable" % unidecode(attr)
+                print "%s is not printable" % attr
         print
         
         point_ip = pkt['NAS-IP-Address'][0]
